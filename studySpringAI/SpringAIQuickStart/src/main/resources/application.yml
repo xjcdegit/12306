@@ -1,0 +1,25 @@
+#spring.application.name=SpringAIQuickStart
+spring:
+  ai:
+    dashscope:
+      api-key: ${API-KEY}
+      chat:
+        options:
+          model: qwen-plus
+  datasource:
+    url: jdbc:mysql://180.76.60.86:3306/spring_ai?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+zhipu:
+  ai:
+    api-key: 4737f09d975f4161a18075c021ab8bc1.n235wSAJBkooiFSY
+
+weather:
+  api:
+    key: 0e3f0ff06cbb5f22699a3d61ada8a61b
+
+logging:
+  level:
+    org.springframework.ai: debug
