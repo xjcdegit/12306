@@ -109,8 +109,6 @@ src/main/java/com/springai/skills
 ├── registry/         # Tool/Skill 注册中心
 ├── mcp/              # MCP 协议实现
 ├── tools/            # Tool 相关
-│   ├── atomic/       # 原子 Tool 实现
-│   └── skills/       # Skill 实现（工作流）
 └── controller/       # API 接口
 ```
 
