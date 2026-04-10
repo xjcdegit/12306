@@ -3,553 +3,1331 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spring AI RAG API 测试</title>
+    <title>Spring AI RAG - API 测试控制台</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #8b5cf6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --bg: #0f172a;
+            --bg-card: #1e293b;
+            --bg-input: #334155;
+            --border: #475569;
+            --border-light: #334155;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
+            --radius: 12px;
+            --radius-sm: 8px;
+            --transition: all 0.2s ease;
         }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f7fa;
-            color: #333;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
             line-height: 1.6;
         }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            border-radius: 12px;
-            margin-bottom: 24px;
-            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
-        }
-        header h1 {
-            font-size: 28px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-        header p {
-            opacity: 0.9;
-            font-size: 14px;
-        }
-        .status-bar {
+        
+        .app { display: flex; min-height: 100vh; }
+        
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: var(--bg-card);
+            border-right: 1px solid var(--border);
+            padding: 24px 16px;
             display: flex;
-            gap: 16px;
-            margin-top: 16px;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
         }
-        .status-item {
-            background: rgba(255,255,255,0.15);
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 13px;
-        }
-        .status-item.active {
-            background: rgba(76, 175, 80, 0.3);
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-            gap: 20px;
-        }
-        .card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-            overflow: hidden;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.12);
-        }
-        .card-header {
-            padding: 16px 20px;
-            border-bottom: 1px solid #eee;
+        
+        .logo {
             display: flex;
             align-items: center;
             gap: 12px;
+            padding: 0 8px;
+            margin-bottom: 32px;
         }
-        .card-header h3 {
-            font-size: 16px;
-            font-weight: 600;
-            flex: 1;
+        
+        .logo-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
         }
-        .method {
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 600;
+        
+        .logo-text h1 { font-size: 18px; font-weight: 700; }
+        .logo-text span { font-size: 11px; color: var(--text-muted); }
+        
+        .nav-section { margin-bottom: 24px; }
+        
+        .nav-title {
+            font-size: 10px;
             text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            padding: 0 8px;
+            font-weight: 600;
         }
-        .method.get { background: #e3f2fd; color: #1976d2; }
-        .method.post { background: #e8f5e9; color: #388e3c; }
-        .method.delete { background: #ffebee; color: #d32f2f; }
-        .card-body {
-            padding: 20px;
-        }
-        .form-group {
-            margin-bottom: 16px;
-        }
-        .form-group:last-child {
-            margin-bottom: 0;
-        }
-        label {
-            display: block;
-            font-size: 13px;
-            color: #666;
-            margin-bottom: 6px;
-        }
-        input, textarea {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+            margin-bottom: 4px;
             font-size: 14px;
-            transition: border-color 0.2s, box-shadow 0.2s;
+            color: var(--text-muted);
         }
-        input:focus, textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        
+        .nav-item:hover { background: var(--bg-input); color: var(--text); }
+        .nav-item.active { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; }
+        .nav-item .icon { font-size: 18px; width: 24px; text-align: center; }
+        
+        .nav-item .badge {
+            margin-left: auto;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+            background: var(--bg-input);
         }
-        textarea {
-            resize: vertical;
-            min-height: 80px;
-            font-family: inherit;
+        
+        .nav-item .badge.online { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+        .nav-item .badge.offline { background: rgba(239, 68, 68, 0.2); color: var(--error); }
+        .nav-item .badge.count { background: rgba(99, 102, 241, 0.2); color: var(--primary); }
+        .nav-item .badge.warning { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
+        
+        /* Session Status Card */
+        .session-status-card {
+            background: var(--bg-input);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 1px solid var(--border);
         }
+        
+        .session-status-card h4 {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+        
+        .status-row:last-child { margin-bottom: 0; }
+        
+        .status-label { color: var(--text-muted); }
+        .status-value { font-weight: 600; }
+        .status-value.warning { color: var(--warning); }
+        .status-value.success { color: var(--success); }
+        
+        .progress-bar {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-top: 12px;
+            overflow: hidden;
+        }
+        
+        .progress-bar .fill {
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+        
+        .progress-bar .fill.warning { background: var(--warning); }
+        .progress-bar .fill.danger { background: var(--error); }
+        
+        /* Main Content */
+        .main {
+            flex: 1;
+            margin-left: 280px;
+            padding: 24px 32px;
+            min-height: 100vh;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+        
+        .header-left h2 { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+        .header-left p { color: var(--text-muted); font-size: 14px; }
+        
+        .header-actions { display: flex; gap: 12px; }
+        
+        /* Buttons */
         .btn {
-            width: 100%;
-            padding: 12px;
+            padding: 10px 20px;
+            border-radius: var(--radius-sm);
             border: none;
-            border-radius: 8px;
             font-size: 14px;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.2s;
-            margin-top: 16px;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
+        
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
         }
-        .btn-primary:hover {
-            opacity: 0.9;
-            transform: translateY(-1px);
+        
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        
+        .btn-secondary { background: var(--bg-input); color: var(--text); border: 1px solid var(--border); }
+        .btn-secondary:hover { background: var(--border); }
+        
+        .btn-success { background: linear-gradient(135deg, var(--success), #059669); color: white; }
+        .btn-success:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4); }
+        
+        .btn-danger { background: linear-gradient(135deg, var(--error), #dc2626); color: white; }
+        .btn-danger:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4); }
+        
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 32px;
         }
-        .btn-primary:active {
-            transform: translateY(0);
+        
+        .stat-card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 24px;
+            border: 1px solid var(--border);
+            transition: var(--transition);
         }
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
+        
+        .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+        .stat-card .label { font-size: 13px; color: var(--text-muted); margin-bottom: 8px; font-weight: 500; }
+        .stat-card .value { font-size: 32px; font-weight: 700; }
+        .stat-card .change { font-size: 12px; margin-top: 8px; display: flex; align-items: center; gap: 4px; }
+        .stat-card .change.positive { color: var(--success); }
+        
+        /* API Grid */
+        .api-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        
+        .api-card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            transition: var(--transition);
         }
-        .result {
-            margin-top: 16px;
-            padding: 16px;
-            background: #f8f9fa;
-            border-radius: 8px;
+        
+        .api-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+        
+        .api-card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        .method-badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .method-badge.get { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+        .method-badge.post { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+        .method-badge.delete { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+        
+        .api-card-header h3 { font-size: 15px; font-weight: 600; flex: 1; }
+        
+        .api-card-header .endpoint {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-family: 'Monaco', 'Consolas', monospace;
+            background: var(--bg-input);
+            padding: 4px 10px;
+            border-radius: 4px;
+        }
+        
+        .api-card-body { padding: 20px; }
+        
+        .form-group { margin-bottom: 16px; }
+        .form-group:last-child { margin-bottom: 0; }
+        
+        .form-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; font-weight: 500; }
+        
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text);
+            font-size: 14px;
+            transition: var(--transition);
+            font-family: inherit;
+        }
+        
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+        
+        .form-group textarea { min-height: 80px; resize: vertical; }
+        
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .form-hint { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+        .form-hint.warning { color: var(--warning); }
+        
+        .api-card-footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-execute {
+            flex: 1;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 10px 16px;
+            border-radius: var(--radius-sm);
+            border: none;
             font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .btn-execute:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4); }
+        .btn-execute:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        
+        .btn-clear {
+            padding: 10px 16px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-muted);
+            font-size: 13px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .btn-clear:hover { background: var(--border); color: var(--text); }
+        
+        /* Response Panel */
+        .response-panel {
+            margin-top: 16px;
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+        
+        .response-header {
+            background: var(--bg-input);
+            padding: 10px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+        }
+        
+        .response-header .status { display: flex; align-items: center; gap: 8px; }
+        .response-header .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--warning); }
+        .response-header .status-dot.success { background: var(--success); }
+        .response-header .status-dot.error { background: var(--error); }
+        .response-header .time { color: var(--text-muted); }
+        
+        .response-body {
+            background: #0d1117;
+            padding: 14px;
             max-height: 300px;
             overflow: auto;
         }
-        .result.success {
-            background: #e8f5e9;
-            border: 1px solid #c8e6c9;
-        }
-        .result.error {
-            background: #ffebee;
-            border: 1px solid #ffcdd2;
-        }
-        .result pre {
+        
+        .response-body pre {
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 12px;
+            line-height: 1.6;
             white-space: pre-wrap;
             word-break: break-all;
             margin: 0;
+            color: #e6edf3;
         }
+        
+        /* Loading */
         .loading {
             display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid #fff;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 50%;
-            border-top-color: transparent;
+            border-top-color: white;
             animation: spin 0.8s linear infinite;
-            margin-right: 8px;
-            vertical-align: middle;
         }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 14px 20px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: var(--shadow-lg);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
         }
-        .tools-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 12px;
+        
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.success { border-color: var(--success); }
+        .toast.success .toast-icon { color: var(--success); }
+        .toast.error { border-color: var(--error); }
+        .toast.error .toast-icon { color: var(--error); }
+        .toast.warning { border-color: var(--warning); }
+        .toast.warning .toast-icon { color: var(--warning); }
+        
+        /* Responsive */
+        @media (max-width: 1400px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 1200px) { .api-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .main { margin-left: 0; padding: 16px; }
+            .header { flex-direction: column; align-items: flex-start; gap: 16px; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .form-row { grid-template-columns: 1fr; }
         }
-        .tool-item {
-            padding: 12px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            font-size: 12px;
-        }
-        .tool-item .name {
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 4px;
-            word-break: break-all;
-        }
-        .tool-item .desc {
-            color: #666;
-            line-height: 1.4;
-        }
-        .section-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: #666;
-            margin-bottom: 16px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid #667eea;
-            display: inline-block;
-        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>🤖 Spring AI RAG API 测试面板</h1>
-            <p>测试所有 API 端点，查看实时响应结果</p>
-            <div class="status-bar">
-                <div class="status-item" id="serverStatus">服务状态: 检测中...</div>
-                <div class="status-item" id="mcpStatus">MCP: 检测中...</div>
-                <div class="status-item" id="toolCount">工具数: -</div>
-            </div>
-        </header>
-
-        <div class="grid">
-            <!-- Skill 匹配 -->
-            <div class="card">
-                <div class="card-header">
-                    <span class="method get">GET</span>
-                    <h3>Skill 匹配</h3>
-                </div>
-                <div class="card-body">
-                    <div class="form-group">
-                        <label>消息内容</label>
-                        <input type="text" id="skillMatchMsg" value="我想去天津旅游" placeholder="输入消息内容">
-                    </div>
-                    <button class="btn btn-primary" onclick="testSkillMatch()">测试匹配</button>
-                    <div class="result" id="skillMatchResult" style="display:none;"></div>
+    <div class="app">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">🤖</div>
+                <div class="logo-text">
+                    <h1>Spring AI RAG</h1>
+                    <span>API Testing Console</span>
                 </div>
             </div>
-
-            <!-- 聊天测试 -->
-            <div class="card">
-                <div class="card-header">
-                    <span class="method get">GET</span>
-                    <h3>智能聊天</h3>
+            
+            <!-- Session Status -->
+            <div class="session-status-card">
+                <h4>📊 会话状态</h4>
+                <div class="status-row">
+                    <span class="status-label">短期记忆</span>
+                    <span class="status-value" id="shortTermCount">0</span>
                 </div>
-                <div class="card-body">
-                    <div class="form-group">
-                        <label>会话ID</label>
-                        <input type="text" id="chatConvId" value="test-001" placeholder="会话ID">
-                    </div>
-                    <div class="form-group">
-                        <label>用户ID</label>
-                        <input type="text" id="chatUserId" value="user-001" placeholder="用户ID">
-                    </div>
-                    <div class="form-group">
-                        <label>消息</label>
-                        <textarea id="chatMsg" placeholder="输入消息...">查询北京市海淀区中关村的坐标</textarea>
-                    </div>
-                    <button class="btn btn-primary" onclick="testChat()">发送消息</button>
-                    <div class="result" id="chatResult" style="display:none;"></div>
+                <div class="status-row">
+                    <span class="status-label">内存使用</span>
+                    <span class="status-value" id="memoryUsage">0%</span>
+                </div>
+                <div class="status-row">
+                    <span class="status-label">状态</span>
+                    <span class="status-value success" id="dirtyStatus">已保存</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="fill" id="memoryProgress" style="width: 0%"></div>
                 </div>
             </div>
-
-            <!-- MCP 工具列表 -->
-            <div class="card">
-                <div class="card-header">
-                    <span class="method get">GET</span>
-                    <h3>MCP 工具列表</h3>
-                </div>
-                <div class="card-body">
-                    <button class="btn btn-primary" onclick="testMcpTools()">获取工具列表</button>
-                    <div class="result" id="mcpToolsResult" style="display:none;"></div>
+            
+            <div class="nav-section">
+                <div class="nav-title">概览</div>
+                <div class="nav-item active" onclick="showSection('all')">
+                    <span class="icon">📊</span>
+                    <span>控制面板</span>
                 </div>
             </div>
-
-            <!-- MCP 状态 -->
-            <div class="card">
-                <div class="card-header">
-                    <span class="method get">GET</span>
-                    <h3>MCP 状态</h3>
+            
+            <div class="nav-section">
+                <div class="nav-title">API 分组</div>
+                <div class="nav-item" onclick="showSection('session')">
+                    <span class="icon">💾</span>
+                    <span>会话管理</span>
+                    <span class="badge count">5</span>
                 </div>
-                <div class="card-body">
-                    <button class="btn btn-primary" onclick="testMcpStatus()">获取状态</button>
-                    <div class="result" id="mcpStatusResult" style="display:none;"></div>
+                <div class="nav-item" onclick="showSection('chat')">
+                    <span class="icon">💬</span>
+                    <span>聊天接口</span>
+                    <span class="badge count">2</span>
                 </div>
-            </div>
-
-            <!-- 记忆统计 -->
-            <div class="card">
-                <div class="card-header">
-                    <span class="method get">GET</span>
-                    <h3>记忆统计</h3>
+                <div class="nav-item" onclick="showSection('mcp')">
+                    <span class="icon">🔧</span>
+                    <span>MCP 工具</span>
+                    <span class="badge count">3</span>
                 </div>
-                <div class="card-body">
-                    <div class="form-group">
-                        <label>会话ID</label>
-                        <input type="text" id="statsConvId" value="test-001" placeholder="会话ID">
-                    </div>
-                    <div class="form-group">
-                        <label>用户ID</label>
-                        <input type="text" id="statsUserId" value="user-001" placeholder="用户ID">
-                    </div>
-                    <button class="btn btn-primary" onclick="testStats()">获取统计</button>
-                    <div class="result" id="statsResult" style="display:none;"></div>
+                <div class="nav-item" onclick="showSection('memory')">
+                    <span class="icon">🧠</span>
+                    <span>记忆管理</span>
+                    <span class="badge count">5</span>
+                </div>
+                <div class="nav-item" onclick="showSection('skill')">
+                    <span class="icon">🎯</span>
+                    <span>Skill 路由</span>
+                    <span class="badge count">1</span>
                 </div>
             </div>
-
-            <!-- 最近对话 -->
-            <div class="card">
-                <div class="card-header">
-                    <span class="method get">GET</span>
-                    <h3>最近对话</h3>
+            
+            <div class="nav-section" style="margin-top: auto;">
+                <div class="nav-title">服务状态</div>
+                <div class="nav-item">
+                    <span class="icon">🌐</span>
+                    <span>API 服务</span>
+                    <span class="badge online" id="apiStatus">在线</span>
                 </div>
-                <div class="card-body">
-                    <div class="form-group">
-                        <label>会话ID</label>
-                        <input type="text" id="recentConvId" value="test-001" placeholder="会话ID">
-                    </div>
-                    <div class="form-group">
-                        <label>数量</label>
-                        <input type="number" id="recentCount" value="10" min="1" max="100">
-                    </div>
-                    <button class="btn btn-primary" onclick="testRecent()">获取对话</button>
-                    <div class="result" id="recentResult" style="display:none;"></div>
+                <div class="nav-item">
+                    <span class="icon">⚡</span>
+                    <span>MCP 服务</span>
+                    <span class="badge" id="mcpStatus">检测中</span>
                 </div>
-            </div>
-
-            <!-- 完整对话历史 -->
-            <div class="card">
-                <div class="card-header">
-                    <span class="method get">GET</span>
-                    <h3>完整对话历史</h3>
-                </div>
-                <div class="card-body">
-                    <div class="form-group">
-                        <label>会话ID</label>
-                        <input type="text" id="completeConvId" value="test-001" placeholder="会话ID">
-                    </div>
-                    <button class="btn btn-primary" onclick="testComplete()">获取历史</button>
-                    <div class="result" id="completeResult" style="display:none;"></div>
+                <div class="nav-item">
+                    <span class="icon">🛠️</span>
+                    <span>工具数量</span>
+                    <span class="badge count" id="toolCountBadge">-</span>
                 </div>
             </div>
-
-            <!-- 用户历史 -->
-            <div class="card">
-                <div class="card-header">
-                    <span class="method get">GET</span>
-                    <h3>用户历史</h3>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main">
+            <div class="header">
+                <div class="header-left">
+                    <h2 id="sectionTitle">控制面板</h2>
+                    <p>测试所有 API 端点，查看实时响应结果</p>
                 </div>
-                <div class="card-body">
-                    <div class="form-group">
-                        <label>用户ID</label>
-                        <input type="text" id="userHistoryId" value="user-001" placeholder="用户ID">
-                    </div>
-                    <div class="form-group">
-                        <label>限制</label>
-                        <input type="number" id="userHistoryLimit" value="100" min="1" max="1000">
-                    </div>
-                    <button class="btn btn-primary" onclick="testUserHistory()">获取历史</button>
-                    <div class="result" id="userHistoryResult" style="display:none;"></div>
+                <div class="header-actions">
+                    <button class="btn btn-secondary" onclick="checkAllStatus()">
+                        <span>🔄</span> 刷新状态
+                    </button>
+                    <button class="btn btn-success" onclick="saveSession()">
+                        <span>💾</span> 保存记忆
+                    </button>
                 </div>
             </div>
-
-            <!-- 删除会话 -->
-            <div class="card">
-                <div class="card-header">
-                    <span class="method delete">DELETE</span>
-                    <h3>删除会话</h3>
+            
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="label">总请求数</div>
+                    <div class="value" id="totalRequests">0</div>
+                    <div class="change positive">📊 本次会话统计</div>
                 </div>
-                <div class="card-body">
-                    <div class="form-group">
-                        <label>会话ID</label>
-                        <input type="text" id="deleteConvId" value="test-001" placeholder="会话ID">
-                    </div>
-                    <button class="btn btn-primary" onclick="testDelete()" style="background: linear-gradient(135deg, #e53935 0%, #d32f2f 100%);">删除会话</button>
-                    <div class="result" id="deleteResult" style="display:none;"></div>
+                <div class="stat-card">
+                    <div class="label">成功率</div>
+                    <div class="value" id="successRate">-</div>
+                    <div class="change positive">✅ 请求成功比例</div>
                 </div>
-            </div>
-
-            <!-- MCP 聊天 -->
-            <div class="card">
-                <div class="card-header">
-                    <span class="method get">GET</span>
-                    <h3>MCP 聊天</h3>
+                <div class="stat-card">
+                    <div class="label">MCP 工具</div>
+                    <div class="value" id="toolCount">-</div>
+                    <div class="change positive">🔧 可用工具数量</div>
                 </div>
-                <div class="card-body">
-                    <div class="form-group">
-                        <label>提示词</label>
-                        <textarea id="mcpChatPrompt" placeholder="输入提示词...">帮我查询北京今天的天气</textarea>
-                    </div>
-                    <button class="btn btn-primary" onclick="testMcpChat()">发送</button>
-                    <div class="result" id="mcpChatResult" style="display:none;"></div>
+                <div class="stat-card">
+                    <div class="label">短期记忆</div>
+                    <div class="value" id="shortMemoryStat">0</div>
+                    <div class="change positive" id="memoryWarning">📝 条消息</div>
                 </div>
             </div>
-
-            <!-- 简单聊天 -->
-            <div class="card">
-                <div class="card-header">
-                    <span class="method get">GET</span>
-                    <h3>简单聊天 (无Skill路由)</h3>
+            
+            <!-- API Cards -->
+            <div class="api-grid" id="apiGrid">
+                <!-- 1. 初始化会话 -->
+                <div class="api-card" data-section="session">
+                    <div class="api-card-header">
+                        <span class="method-badge post">POST</span>
+                        <h3>初始化会话</h3>
+                        <span class="endpoint">/memory/session/init</span>
+                    </div>
+                    <div class="api-card-body">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>会话 ID</label>
+                                <input type="text" id="init-convId" value="test-001">
+                            </div>
+                            <div class="form-group">
+                                <label>用户 ID</label>
+                                <input type="text" id="init-userId" value="user-001">
+                            </div>
+                        </div>
+                        <div class="form-hint">加载长期记忆到短期记忆 (内存)</div>
+                    </div>
+                    <div class="api-card-footer">
+                        <button class="btn-execute" onclick="initSession()">初始化会话</button>
+                        <button class="btn-clear" onclick="clearResult('init')">清除</button>
+                    </div>
+                    <div class="response-panel" id="init-response" style="display:none;">
+                        <div class="response-header">
+                            <span class="status"><span class="status-dot"></span> <span class="status-text">响应</span></span>
+                            <span class="time"></span>
+                        </div>
+                        <div class="response-body"><pre></pre></div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div class="form-group">
-                        <label>会话ID</label>
-                        <input type="text" id="simpleConvId" value="test-002" placeholder="会话ID">
+                
+                <!-- 2. 保存会话 -->
+                <div class="api-card" data-section="session">
+                    <div class="api-card-header">
+                        <span class="method-badge post">POST</span>
+                        <h3>保存会话 (压缩)</h3>
+                        <span class="endpoint">/memory/session/save</span>
                     </div>
-                    <div class="form-group">
-                        <label>用户ID</label>
-                        <input type="text" id="simpleUserId" value="user-001" placeholder="用户ID">
+                    <div class="api-card-body">
+                        <div class="form-group">
+                            <label>会话 ID</label>
+                            <input type="text" id="save-convId" value="test-001">
+                        </div>
+                        <div class="form-hint warning">⚠️ 压缩短期记忆并保存到长期记忆，然后清空内存重新注入</div>
                     </div>
-                    <div class="form-group">
-                        <label>消息</label>
-                        <textarea id="simpleMsg" placeholder="输入消息...">你好</textarea>
+                    <div class="api-card-footer">
+                        <button class="btn-execute btn-success" onclick="saveSessionApi()">保存并压缩</button>
+                        <button class="btn-clear" onclick="clearResult('save')">清除</button>
                     </div>
-                    <button class="btn btn-primary" onclick="testSimpleChat()">发送</button>
-                    <div class="result" id="simpleChatResult" style="display:none;"></div>
+                    <div class="response-panel" id="save-response" style="display:none;">
+                        <div class="response-header">
+                            <span class="status"><span class="status-dot"></span> <span class="status-text">响应</span></span>
+                            <span class="time"></span>
+                        </div>
+                        <div class="response-body"><pre></pre></div>
+                    </div>
+                </div>
+                
+                <!-- 3. 会话状态 -->
+                <div class="api-card" data-section="session">
+                    <div class="api-card-header">
+                        <span class="method-badge get">GET</span>
+                        <h3>会话状态</h3>
+                        <span class="endpoint">/memory/session/status</span>
+                    </div>
+                    <div class="api-card-body">
+                        <div class="form-group">
+                            <label>会话 ID</label>
+                            <input type="text" id="status-convId" value="test-001">
+                        </div>
+                    </div>
+                    <div class="api-card-footer">
+                        <button class="btn-execute" onclick="getSessionStatus()">获取状态</button>
+                        <button class="btn-clear" onclick="clearResult('status')">清除</button>
+                    </div>
+                    <div class="response-panel" id="status-response" style="display:none;">
+                        <div class="response-header">
+                            <span class="status"><span class="status-dot"></span> <span class="status-text">响应</span></span>
+                            <span class="time"></span>
+                        </div>
+                        <div class="response-body"><pre></pre></div>
+                    </div>
+                </div>
+                
+                <!-- 4. 放弃更改 -->
+                <div class="api-card" data-section="session">
+                    <div class="api-card-header">
+                        <span class="method-badge delete">DELETE</span>
+                        <h3>放弃更改</h3>
+                        <span class="endpoint">/memory/session/discard</span>
+                    </div>
+                    <div class="api-card-body">
+                        <div class="form-group">
+                            <label>会话 ID</label>
+                            <input type="text" id="discard-convId" value="test-001">
+                        </div>
+                        <div class="form-hint warning">⚠️ 放弃未保存的短期记忆更改</div>
+                    </div>
+                    <div class="api-card-footer">
+                        <button class="btn-execute btn-danger" onclick="discardChanges()">放弃更改</button>
+                        <button class="btn-clear" onclick="clearResult('discard')">清除</button>
+                    </div>
+                    <div class="response-panel" id="discard-response" style="display:none;">
+                        <div class="response-header">
+                            <span class="status"><span class="status-dot"></span> <span class="status-text">响应</span></span>
+                            <span class="time"></span>
+                        </div>
+                        <div class="response-body"><pre></pre></div>
+                    </div>
+                </div>
+                
+                <!-- 5. 智能聊天 -->
+                <div class="api-card" data-section="chat">
+                    <div class="api-card-header">
+                        <span class="method-badge get">GET</span>
+                        <h3>智能聊天 (带历史)</h3>
+                        <span class="endpoint">/memory/chat</span>
+                    </div>
+                    <div class="api-card-body">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>会话 ID</label>
+                                <input type="text" id="chat1-convId" value="test-001">
+                            </div>
+                            <div class="form-group">
+                                <label>用户 ID</label>
+                                <input type="text" id="chat1-userId" value="user-001">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>消息内容</label>
+                            <textarea id="chat1-msg" placeholder="输入消息...">查询北京市海淀区中关村的坐标</textarea>
+                        </div>
+                    </div>
+                    <div class="api-card-footer">
+                        <button class="btn-execute" onclick="executeChat()">发送请求</button>
+                        <button class="btn-clear" onclick="clearResult('chat1')">清除</button>
+                    </div>
+                    <div class="response-panel" id="chat1-response" style="display:none;">
+                        <div class="response-header">
+                            <span class="status"><span class="status-dot"></span> <span class="status-text">响应</span></span>
+                            <span class="time"></span>
+                        </div>
+                        <div class="response-body"><pre></pre></div>
+                    </div>
+                </div>
+                
+                <!-- 6. 简单聊天 -->
+                <div class="api-card" data-section="chat">
+                    <div class="api-card-header">
+                        <span class="method-badge get">GET</span>
+                        <h3>简单聊天 (无路由)</h3>
+                        <span class="endpoint">/memory/chat-simple</span>
+                    </div>
+                    <div class="api-card-body">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>会话 ID</label>
+                                <input type="text" id="chat2-convId" value="test-002">
+                            </div>
+                            <div class="form-group">
+                                <label>用户 ID</label>
+                                <input type="text" id="chat2-userId" value="user-001">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>消息内容</label>
+                            <textarea id="chat2-msg" placeholder="输入消息...">你好</textarea>
+                        </div>
+                    </div>
+                    <div class="api-card-footer">
+                        <button class="btn-execute" onclick="executeSimpleChat()">发送请求</button>
+                        <button class="btn-clear" onclick="clearResult('chat2')">清除</button>
+                    </div>
+                    <div class="response-panel" id="chat2-response" style="display:none;">
+                        <div class="response-header">
+                            <span class="status"><span class="status-dot"></span> <span class="status-text">响应</span></span>
+                            <span class="time"></span>
+                        </div>
+                        <div class="response-body"><pre></pre></div>
+                    </div>
+                </div>
+                
+                <!-- 7. Skill 匹配 -->
+                <div class="api-card" data-section="skill">
+                    <div class="api-card-header">
+                        <span class="method-badge get">GET</span>
+                        <h3>Skill 匹配</h3>
+                        <span class="endpoint">/memory/skill-match</span>
+                    </div>
+                    <div class="api-card-body">
+                        <div class="form-group">
+                            <label>消息内容</label>
+                            <input type="text" id="skill-msg" value="我想去天津旅游">
+                        </div>
+                    </div>
+                    <div class="api-card-footer">
+                        <button class="btn-execute" onclick="executeSkillMatch()">匹配 Skill</button>
+                        <button class="btn-clear" onclick="clearResult('skill')">清除</button>
+                    </div>
+                    <div class="response-panel" id="skill-response" style="display:none;">
+                        <div class="response-header">
+                            <span class="status"><span class="status-dot"></span> <span class="status-text">响应</span></span>
+                            <span class="time"></span>
+                        </div>
+                        <div class="response-body"><pre></pre></div>
+                    </div>
+                </div>
+                
+                <!-- 8. MCP 工具列表 -->
+                <div class="api-card" data-section="mcp">
+                    <div class="api-card-header">
+                        <span class="method-badge get">GET</span>
+                        <h3>MCP 工具列表</h3>
+                        <span class="endpoint">/api/mcp/tools</span>
+                    </div>
+                    <div class="api-card-body">
+                        <div class="form-group">
+                            <label>获取所有可用的 MCP 工具</label>
+                        </div>
+                    </div>
+                    <div class="api-card-footer">
+                        <button class="btn-execute" onclick="executeMcpTools()">获取工具</button>
+                        <button class="btn-clear" onclick="clearResult('mcpTools')">清除</button>
+                    </div>
+                    <div class="response-panel" id="mcpTools-response" style="display:none;">
+                        <div class="response-header">
+                            <span class="status"><span class="status-dot"></span> <span class="status-text">响应</span></span>
+                            <span class="time"></span>
+                        </div>
+                        <div class="response-body"><pre></pre></div>
+                    </div>
+                </div>
+                
+                <!-- 9. MCP 状态 -->
+                <div class="api-card" data-section="mcp">
+                    <div class="api-card-header">
+                        <span class="method-badge get">GET</span>
+                        <h3>MCP 状态</h3>
+                        <span class="endpoint">/api/mcp/status</span>
+                    </div>
+                    <div class="api-card-body">
+                        <div class="form-group">
+                            <label>检查 MCP 服务状态</label>
+                        </div>
+                    </div>
+                    <div class="api-card-footer">
+                        <button class="btn-execute" onclick="executeMcpStatus()">检查状态</button>
+                        <button class="btn-clear" onclick="clearResult('mcpStatus')">清除</button>
+                    </div>
+                    <div class="response-panel" id="mcpStatus-response" style="display:none;">
+                        <div class="response-header">
+                            <span class="status"><span class="status-dot"></span> <span class="status-text">响应</span></span>
+                            <span class="time"></span>
+                        </div>
+                        <div class="response-body"><pre></pre></div>
+                    </div>
+                </div>
+                
+                <!-- 10. MCP 聊天 -->
+                <div class="api-card" data-section="mcp">
+                    <div class="api-card-header">
+                        <span class="method-badge get">GET</span>
+                        <h3>MCP 聊天</h3>
+                        <span class="endpoint">/api/mcp/chat</span>
+                    </div>
+                    <div class="api-card-body">
+                        <div class="form-group">
+                            <label>提示词</label>
+                            <textarea id="mcpChat-prompt" placeholder="输入提示词...">帮我查询北京今天的天气</textarea>
+                        </div>
+                    </div>
+                    <div class="api-card-footer">
+                        <button class="btn-execute" onclick="executeMcpChat()">发送请求</button>
+                        <button class="btn-clear" onclick="clearResult('mcpChat')">清除</button>
+                    </div>
+                    <div class="response-panel" id="mcpChat-response" style="display:none;">
+                        <div class="response-header">
+                            <span class="status"><span class="status-dot"></span> <span class="status-text">响应</span></span>
+                            <span class="time"></span>
+                        </div>
+                        <div class="response-body"><pre></pre></div>
+                    </div>
+                </div>
+                
+                <!-- 11. 记忆统计 -->
+                <div class="api-card" data-section="memory">
+                    <div class="api-card-header">
+                        <span class="method-badge get">GET</span>
+                        <h3>记忆统计</h3>
+                        <span class="endpoint">/memory/stats</span>
+                    </div>
+                    <div class="api-card-body">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>会话 ID</label>
+                                <input type="text" id="stats-convId" value="test-001">
+                            </div>
+                            <div class="form-group">
+                                <label>用户 ID</label>
+                                <input type="text" id="stats-userId" value="user-001">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="api-card-footer">
+                        <button class="btn-execute" onclick="executeStats()">获取统计</button>
+                        <button class="btn-clear" onclick="clearResult('stats')">清除</button>
+                    </div>
+                    <div class="response-panel" id="stats-response" style="display:none;">
+                        <div class="response-header">
+                            <span class="status"><span class="status-dot"></span> <span class="status-text">响应</span></span>
+                            <span class="time"></span>
+                        </div>
+                        <div class="response-body"><pre></pre></div>
+                    </div>
+                </div>
+                
+                <!-- 12. 最近对话 -->
+                <div class="api-card" data-section="memory">
+                    <div class="api-card-header">
+                        <span class="method-badge get">GET</span>
+                        <h3>最近对话</h3>
+                        <span class="endpoint">/memory/recent</span>
+                    </div>
+                    <div class="api-card-body">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>会话 ID</label>
+                                <input type="text" id="recent-convId" value="test-001">
+                            </div>
+                            <div class="form-group">
+                                <label>数量</label>
+                                <input type="number" id="recent-count" value="10" min="1" max="100">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="api-card-footer">
+                        <button class="btn-execute" onclick="executeRecent()">获取对话</button>
+                        <button class="btn-clear" onclick="clearResult('recent')">清除</button>
+                    </div>
+                    <div class="response-panel" id="recent-response" style="display:none;">
+                        <div class="response-header">
+                            <span class="status"><span class="status-dot"></span> <span class="status-text">响应</span></span>
+                            <span class="time"></span>
+                        </div>
+                        <div class="response-body"><pre></pre></div>
+                    </div>
+                </div>
+                
+                <!-- 13. 完整对话历史 -->
+                <div class="api-card" data-section="memory">
+                    <div class="api-card-header">
+                        <span class="method-badge get">GET</span>
+                        <h3>完整对话历史</h3>
+                        <span class="endpoint">/memory/complete</span>
+                    </div>
+                    <div class="api-card-body">
+                        <div class="form-group">
+                            <label>会话 ID</label>
+                            <input type="text" id="complete-convId" value="test-001">
+                        </div>
+                    </div>
+                    <div class="api-card-footer">
+                        <button class="btn-execute" onclick="executeComplete()">获取历史</button>
+                        <button class="btn-clear" onclick="clearResult('complete')">清除</button>
+                    </div>
+                    <div class="response-panel" id="complete-response" style="display:none;">
+                        <div class="response-header">
+                            <span class="status"><span class="status-dot"></span> <span class="status-text">响应</span></span>
+                            <span class="time"></span>
+                        </div>
+                        <div class="response-body"><pre></pre></div>
+                    </div>
+                </div>
+                
+                <!-- 14. 用户历史 -->
+                <div class="api-card" data-section="memory">
+                    <div class="api-card-header">
+                        <span class="method-badge get">GET</span>
+                        <h3>用户历史</h3>
+                        <span class="endpoint">/memory/user-history</span>
+                    </div>
+                    <div class="api-card-body">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>用户 ID</label>
+                                <input type="text" id="userHistory-userId" value="user-001">
+                            </div>
+                            <div class="form-group">
+                                <label>限制</label>
+                                <input type="number" id="userHistory-limit" value="100" min="1" max="1000">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="api-card-footer">
+                        <button class="btn-execute" onclick="executeUserHistory()">获取历史</button>
+                        <button class="btn-clear" onclick="clearResult('userHistory')">清除</button>
+                    </div>
+                    <div class="response-panel" id="userHistory-response" style="display:none;">
+                        <div class="response-header">
+                            <span class="status"><span class="status-dot"></span> <span class="status-text">响应</span></span>
+                            <span class="time"></span>
+                        </div>
+                        <div class="response-body"><pre></pre></div>
+                    </div>
+                </div>
+                
+                <!-- 15. 删除会话 -->
+                <div class="api-card" data-section="memory">
+                    <div class="api-card-header">
+                        <span class="method-badge delete">DELETE</span>
+                        <h3>删除会话</h3>
+                        <span class="endpoint">/memory/conversation/{id}</span>
+                    </div>
+                    <div class="api-card-body">
+                        <div class="form-group">
+                            <label>会话 ID</label>
+                            <input type="text" id="delete-convId" value="test-001">
+                        </div>
+                        <div class="form-hint warning">⚠️ 此操作将删除该会话的所有记忆，无法恢复</div>
+                    </div>
+                    <div class="api-card-footer">
+                        <button class="btn-execute btn-danger" onclick="executeDelete()">删除会话</button>
+                        <button class="btn-clear" onclick="clearResult('delete')">清除</button>
+                    </div>
+                    <div class="response-panel" id="delete-response" style="display:none;">
+                        <div class="response-header">
+                            <span class="status"><span class="status-dot"></span> <span class="status-text">响应</span></span>
+                            <span class="time"></span>
+                        </div>
+                        <div class="response-body"><pre></pre></div>
+                    </div>
                 </div>
             </div>
-        </div>
+        </main>
     </div>
-
+    
+    <!-- Toast -->
+    <div class="toast" id="toast">
+        <span class="toast-icon">✓</span>
+        <span class="toast-message"></span>
+    </div>
+    
     <script>
         const BASE_URL = 'http://localhost:8081';
-
-        async function fetchApi(url, resultId) {
-            const resultEl = document.getElementById(resultId);
-            resultEl.style.display = 'block';
-            resultEl.className = 'result';
-            resultEl.innerHTML = '<span class="loading"></span>请求中...';
-
+        let totalRequests = 0;
+        let successRequests = 0;
+        let currentConversationId = 'test-001';
+        let currentUserId = 'user-001';
+        let sessionInitialized = false;
+        
+        // ==================== API Fetch Wrapper ====================
+        async function fetchApi(url, resultId, method = 'GET', body = null) {
+            const panel = document.getElementById(resultId);
+            const startTime = Date.now();
+            
+            panel.style.display = 'block';
+            const statusDot = panel.querySelector('.status-dot');
+            const statusText = panel.querySelector('.status-text');
+            const timeEl = panel.querySelector('.time');
+            const preEl = panel.querySelector('pre');
+            
+            statusDot.className = 'status-dot';
+            statusText.textContent = '请求中...';
+            timeEl.textContent = '';
+            preEl.textContent = '加载中...';
+            
+            totalRequests++;
+            updateStats();
+            
             try {
-                const response = await fetch(url);
+                const options = { method };
+                if (body) {
+                    options.headers = { 'Content-Type': 'application/json' };
+                    options.body = JSON.stringify(body);
+                }
+                
+                const response = await fetch(url, options);
                 const data = await response.json();
-                resultEl.className = 'result success';
-                resultEl.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                const duration = Date.now() - startTime;
+                
+                successRequests++;
+                updateStats();
+                
+                statusDot.classList.add('success');
+                statusText.textContent = `成功 (${response.status})`;
+                timeEl.textContent = `${duration}ms`;
+                preEl.textContent = JSON.stringify(data, null, 2);
+                
+                showToast('请求成功', 'success');
                 return data;
             } catch (error) {
-                resultEl.className = 'result error';
-                resultEl.innerHTML = '<pre>错误: ' + error.message + '</pre>';
+                statusDot.classList.add('error');
+                statusText.textContent = '失败';
+                preEl.textContent = `错误: ${error.message}`;
+                
+                showToast(`请求失败: ${error.message}`, 'error');
                 return null;
             }
         }
-
-        function testSkillMatch() {
-            const msg = encodeURIComponent(document.getElementById('skillMatchMsg').value);
-            fetchApi(`${BASE_URL}/memory/skill-match?message=${msg}`, 'skillMatchResult');
+        
+        // ==================== Stats ====================
+        function updateStats() {
+            document.getElementById('totalRequests').textContent = totalRequests;
+            document.getElementById('successRate').textContent = 
+                totalRequests > 0 ? Math.round(successRequests / totalRequests * 100) + '%' : '-';
         }
-
-        function testChat() {
-            const convId = encodeURIComponent(document.getElementById('chatConvId').value);
-            const userId = encodeURIComponent(document.getElementById('chatUserId').value);
-            const msg = encodeURIComponent(document.getElementById('chatMsg').value);
-            fetchApi(`${BASE_URL}/memory/chat?conversationId=${convId}&userId=${userId}&message=${msg}`, 'chatResult');
-        }
-
-        function testMcpTools() {
-            fetchApi(`${BASE_URL}/api/mcp/tools`, 'mcpToolsResult');
-        }
-
-        function testMcpStatus() {
-            fetchApi(`${BASE_URL}/api/mcp/status`, 'mcpStatusResult');
-        }
-
-        function testStats() {
-            const convId = encodeURIComponent(document.getElementById('statsConvId').value);
-            const userId = encodeURIComponent(document.getElementById('statsUserId').value);
-            fetchApi(`${BASE_URL}/memory/stats?conversationId=${convId}&userId=${userId}`, 'statsResult');
-        }
-
-        function testRecent() {
-            const convId = encodeURIComponent(document.getElementById('recentConvId').value);
-            const count = document.getElementById('recentCount').value;
-            fetchApi(`${BASE_URL}/memory/recent?conversationId=${convId}&lastN=${count}`, 'recentResult');
-        }
-
-        function testComplete() {
-            const convId = encodeURIComponent(document.getElementById('completeConvId').value);
-            fetchApi(`${BASE_URL}/memory/complete?conversationId=${convId}`, 'completeResult');
-        }
-
-        function testUserHistory() {
-            const userId = encodeURIComponent(document.getElementById('userHistoryId').value);
-            const limit = document.getElementById('userHistoryLimit').value;
-            fetchApi(`${BASE_URL}/memory/user-history?userId=${userId}&limit=${limit}`, 'userHistoryResult');
-        }
-
-        async function testDelete() {
-            const convId = encodeURIComponent(document.getElementById('deleteConvId').value);
-            const resultEl = document.getElementById('deleteResult');
-            resultEl.style.display = 'block';
-            resultEl.className = 'result';
-            resultEl.innerHTML = '<span class="loading"></span>请求中...';
-
-            try {
-                const response = await fetch(`${BASE_URL}/memory/conversation/${convId}`, { method: 'DELETE' });
-                const data = await response.json();
-                resultEl.className = 'result success';
-                resultEl.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
-            } catch (error) {
-                resultEl.className = 'result error';
-                resultEl.innerHTML = '<pre>错误: ' + error.message + '</pre>';
+        
+        function updateSessionStatus(status) {
+            if (!status) return;
+            
+            document.getElementById('shortTermCount').textContent = status.shortTermCount || 0;
+            document.getElementById('shortMemoryStat').textContent = status.shortTermCount || 0;
+            document.getElementById('memoryUsage').textContent = status.memoryUsage || '0%';
+            
+            const progress = document.getElementById('memoryProgress');
+            const usage = parseFloat(status.memoryUsage) || 0;
+            progress.style.width = usage + '%';
+            progress.className = 'fill';
+            if (usage >= 80) progress.classList.add('danger');
+            else if (usage >= 60) progress.classList.add('warning');
+            
+            const dirtyStatus = document.getElementById('dirtyStatus');
+            if (status.dirty) {
+                dirtyStatus.textContent = '未保存';
+                dirtyStatus.className = 'status-value warning';
+            } else {
+                dirtyStatus.textContent = '已保存';
+                dirtyStatus.className = 'status-value success';
+            }
+            
+            if (status.warning) {
+                document.getElementById('memoryWarning').textContent = '⚠️ ' + status.warning;
+                document.getElementById('memoryWarning').className = 'change warning';
+                showToast(status.warning, 'warning');
+            } else {
+                document.getElementById('memoryWarning').textContent = '📝 条消息';
+                document.getElementById('memoryWarning').className = 'change positive';
             }
         }
-
-        function testMcpChat() {
-            const prompt = encodeURIComponent(document.getElementById('mcpChatPrompt').value);
-            fetchApi(`${BASE_URL}/api/mcp/chat?prompt=${prompt}`, 'mcpChatResult');
+        
+        // ==================== Toast ====================
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const icon = toast.querySelector('.toast-icon');
+            const msg = toast.querySelector('.toast-message');
+            
+            icon.textContent = type === 'success' ? '✓' : type === 'warning' ? '⚠' : '✗';
+            msg.textContent = message;
+            toast.className = `toast ${type} show`;
+            
+            setTimeout(() => toast.classList.remove('show'), 3000);
         }
-
-        function testSimpleChat() {
-            const convId = encodeURIComponent(document.getElementById('simpleConvId').value);
-            const userId = encodeURIComponent(document.getElementById('simpleUserId').value);
-            const msg = encodeURIComponent(document.getElementById('simpleMsg').value);
-            fetchApi(`${BASE_URL}/memory/chat-simple?conversationId=${convId}&userId=${userId}&message=${msg}`, 'simpleChatResult');
+        
+        // ==================== Clear Result ====================
+        function clearResult(id) {
+            const panel = document.getElementById(id + '-response');
+            if (panel) panel.style.display = 'none';
         }
-
-        // 初始化检查服务状态
-        async function checkStatus() {
-            const statusEl = document.getElementById('serverStatus');
-            const mcpEl = document.getElementById('mcpStatus');
-            const toolEl = document.getElementById('toolCount');
-
+        
+        // ==================== Session API ====================
+        async function initSession() {
+            const convId = document.getElementById('init-convId').value;
+            const userId = document.getElementById('init-userId').value;
+            currentConversationId = convId;
+            currentUserId = userId;
+            
+            const result = await fetchApi(`${BASE_URL}/memory/session/init`, 'init-response', 'POST', {
+                conversationId: convId,
+                userId: userId
+            });
+            
+            if (result && result.success) {
+                sessionInitialized = true;
+                updateSessionStatus(result.sessionStatus);
+                showToast(`会话已初始化，加载了 ${result.loadedMessages} 条消息`, 'success');
+            }
+        }
+        
+        async function saveSession() {
+            if (!sessionInitialized) {
+                showToast('请先初始化会话', 'warning');
+                return;
+            }
+            await saveSessionApi();
+        }
+        
+        async function saveSessionApi() {
+            const convId = document.getElementById('save-convId').value;
+            
+            const result = await fetchApi(`${BASE_URL}/memory/session/save`, 'save-response', 'POST', {
+                conversationId: convId
+            });
+            
+            if (result && result.success) {
+                updateSessionStatus(result.sessionStatus);
+                const cr = result.compressionResult;
+                showToast(`保存成功！压缩率: ${cr.compressionRatio}`, 'success');
+            }
+        }
+        
+        async function getSessionStatus() {
+            const convId = document.getElementById('status-convId').value;
+            const result = await fetchApi(`${BASE_URL}/memory/session/status?conversationId=${convId}`, 'status-response');
+            if (result && result.success) {
+                updateSessionStatus(result.sessionStatus);
+            }
+        }
+        
+        async function discardChanges() {
+            const convId = document.getElementById('discard-convId').value;
+            const result = await fetchApi(`${BASE_URL}/memory/session/discard`, 'discard-response', 'DELETE', {
+                conversationId: convId
+            });
+            if (result && result.success) {
+                await getSessionStatus();
+            }
+        }
+        
+        // ==================== Chat API ====================
+        async function executeChat() {
+            if (!sessionInitialized) {
+                showToast('请先初始化会话', 'warning');
+                await initSession();
+            }
+            
+            const convId = document.getElementById('chat1-convId').value;
+            const userId = document.getElementById('chat1-userId').value;
+            const msg = encodeURIComponent(document.getElementById('chat1-msg').value);
+            
+            const result = await fetchApi(`${BASE_URL}/memory/chat?conversationId=${convId}&userId=${userId}&message=${msg}`, 'chat1-response');
+            
+            if (result && result.sessionStatus) {
+                updateSessionStatus(result.sessionStatus);
+            }
+        }
+        
+        function executeSimpleChat() {
+            const convId = encodeURIComponent(document.getElementById('chat2-convId').value);
+            const userId = encodeURIComponent(document.getElementById('chat2-userId').value);
+            const msg = encodeURIComponent(document.getElementById('chat2-msg').value);
+            fetchApi(`${BASE_URL}/memory/chat-simple?conversationId=${convId}&userId=${userId}&message=${msg}`, 'chat2-response');
+        }
+        
+        function executeSkillMatch() {
+            const msg = encodeURIComponent(document.getElementById('skill-msg').value);
+            fetchApi(`${BASE_URL}/memory/skill-match?message=${msg}`, 'skill-response');
+        }
+        
+        function executeMcpTools() {
+            fetchApi(`${BASE_URL}/api/mcp/tools`, 'mcpTools-response');
+        }
+        
+        function executeMcpStatus() {
+            fetchApi(`${BASE_URL}/api/mcp/status`, 'mcpStatus-response');
+        }
+        
+        function executeMcpChat() {
+            const prompt = encodeURIComponent(document.getElementById('mcpChat-prompt').value);
+            fetchApi(`${BASE_URL}/api/mcp/chat?prompt=${prompt}`, 'mcpChat-response');
+        }
+        
+        function executeStats() {
+            const convId = encodeURIComponent(document.getElementById('stats-convId').value);
+            const userId = encodeURIComponent(document.getElementById('stats-userId').value);
+            fetchApi(`${BASE_URL}/memory/stats?conversationId=${convId}&userId=${userId}`, 'stats-response');
+        }
+        
+        function executeRecent() {
+            const convId = encodeURIComponent(document.getElementById('recent-convId').value);
+            const count = document.getElementById('recent-count').value;
+            fetchApi(`${BASE_URL}/memory/recent?conversationId=${convId}&lastN=${count}`, 'recent-response');
+        }
+        
+        function executeComplete() {
+            const convId = encodeURIComponent(document.getElementById('complete-convId').value);
+            fetchApi(`${BASE_URL}/memory/complete?conversationId=${convId}`, 'complete-response');
+        }
+        
+        function executeUserHistory() {
+            const userId = encodeURIComponent(document.getElementById('userHistory-userId').value);
+            const limit = document.getElementById('userHistory-limit').value;
+            fetchApi(`${BASE_URL}/memory/user-history?userId=${userId}&limit=${limit}`, 'userHistory-response');
+        }
+        
+        async function executeDelete() {
+            const convId = encodeURIComponent(document.getElementById('delete-convId').value);
+            await fetchApi(`${BASE_URL}/memory/conversation/${convId}`, 'delete-response', 'DELETE');
+        }
+        
+        // ==================== Section Filter ====================
+        function showSection(section) {
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            event.target.closest('.nav-item').classList.add('active');
+            
+            const cards = document.querySelectorAll('.api-card');
+            const titles = {
+                'all': '控制面板',
+                'session': '会话管理',
+                'chat': '聊天接口',
+                'mcp': 'MCP 工具',
+                'memory': '记忆管理',
+                'skill': 'Skill 路由'
+            };
+            
+            document.getElementById('sectionTitle').textContent = titles[section] || '控制面板';
+            
+            cards.forEach(card => {
+                card.style.display = (section === 'all' || card.dataset.section === section) ? 'block' : 'none';
+            });
+        }
+        
+        // ==================== Status Check ====================
+        async function checkAllStatus() {
             try {
                 const response = await fetch(`${BASE_URL}/api/mcp/status`);
-                if (response.ok) {
-                    const data = await response.json();
-                    statusEl.textContent = '服务状态: 运行中';
-                    statusEl.classList.add('active');
-                    mcpEl.textContent = 'MCP: ' + (data.mcpEnabled ? '已启用' : '未启用');
-                    if (data.mcpEnabled) mcpEl.classList.add('active');
-                    toolEl.textContent = '工具数: ' + data.toolCount;
-                } else {
-                    statusEl.textContent = '服务状态: 异常';
-                }
+                const data = await response.json();
+                
+                document.getElementById('mcpStatus').textContent = data.mcpEnabled ? '在线' : '离线';
+                document.getElementById('mcpStatus').className = 'badge ' + (data.mcpEnabled ? 'online' : 'offline');
+                document.getElementById('toolCount').textContent = data.toolCount || 0;
+                document.getElementById('toolCountBadge').textContent = data.toolCount || 0;
+                
+                showToast('状态已更新', 'success');
             } catch (error) {
-                statusEl.textContent = '服务状态: 无法连接';
-                mcpEl.textContent = 'MCP: -';
-                toolEl.textContent = '工具数: -';
+                document.getElementById('apiStatus').textContent = '离线';
+                document.getElementById('apiStatus').className = 'badge offline';
+                document.getElementById('mcpStatus').textContent = '离线';
+                document.getElementById('mcpStatus').className = 'badge offline';
+                showToast('服务无法连接', 'error');
             }
         }
-
-        // 页面加载后检查状态
-        checkStatus();
+        
+        // ==================== Init ====================
+        checkAllStatus();
+        
+        // Auto-init session
+        setTimeout(() => {
+            initSession();
+        }, 1000);
     </script>
 </body>
 </html>

@@ -184,4 +184,39 @@ public class RelationalDatabaseMemory {
         if (content == null) return 0;
         return (int) (content.length() * 0.5);
     }
+
+    @Transactional(readOnly = true)
+    public List<ChatRecord> getCompressedSummaries(String conversationId) {
+        log.debug("[DB] Getting compressed summaries for conversation: {}", conversationId);
+        List<ChatRecord> summaries = repository.findCompressedSummaries(conversationId);
+        log.debug("[DB] Found {} compressed summaries", summaries.size());
+        return summaries;
+    }
+
+    @Transactional
+    public void saveCompressedSummary(String conversationId, String userId, String content) {
+        log.info("[DB] Saving compressed summary for conversation: {}", conversationId);
+        
+        ChatRecord summaryRecord = new ChatRecord();
+        summaryRecord.setConversationId(conversationId);
+        summaryRecord.setUserId(userId);
+        summaryRecord.setRole("system");
+        summaryRecord.setContent(content);
+        summaryRecord.setTokenCount(estimateTokenCount(content));
+        summaryRecord.setIsCompressed(true);
+        
+        repository.save(summaryRecord);
+        log.info("[DB] Compressed summary saved, tokens: {}", summaryRecord.getTokenCount());
+    }
+
+    @Transactional
+    public void markAllAsCompressed(String conversationId) {
+        log.info("[DB] Marking all messages as compressed for conversation: {}", conversationId);
+        List<ChatRecord> messages = repository.findAllUncompressed(conversationId);
+        for (ChatRecord record : messages) {
+            record.setIsCompressed(true);
+        }
+        repository.saveAll(messages);
+        log.info("[DB] Marked {} messages as compressed", messages.size());
+    }
 }

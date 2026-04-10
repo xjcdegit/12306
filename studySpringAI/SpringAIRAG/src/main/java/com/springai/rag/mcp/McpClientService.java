@@ -3,12 +3,12 @@ package com.springai.rag.mcp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.mcp.SyncMcpToolCallbackProvider;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @Service
@@ -28,6 +28,73 @@ public class McpClientService {
         log.info("[MCP] McpClientService 初始化");
         log.info("[MCP] MCP工具提供者: {}", mcpToolProvider != null ? "已加载" : "未找到");
         log.info("========================================");
+    }
+
+    public String chatWithHistory(String systemPrompt, String userPrompt, List<Message> history) {
+        log.info("========================================");
+        log.info("[MCP-HISTORY] 开始带历史上下文的对话");
+        log.info("[MCP-HISTORY] 用户提示词: {}", userPrompt);
+        log.info("[MCP-HISTORY] 系统提示词长度: {} 字符", systemPrompt.length());
+        log.info("[MCP-HISTORY] 历史消息数: {}", history != null ? history.size() : 0);
+        log.info("[MCP-HISTORY] MCP工具: {}", mcpToolProvider != null ? "可用" : "不可用");
+        
+        String response;
+        if (history != null && !history.isEmpty()) {
+            log.info("[MCP-HISTORY] 将历史消息合并到系统提示词中...");
+            
+            StringBuilder enhancedSystemPrompt = new StringBuilder();
+            enhancedSystemPrompt.append(systemPrompt).append("\n\n");
+            enhancedSystemPrompt.append("=== 对话历史 ===\n");
+            for (Message msg : history) {
+                String role = msg.getMessageType().getValue();
+                enhancedSystemPrompt.append("[").append(role.toUpperCase()).append("]: ")
+                    .append(msg.getText()).append("\n");
+            }
+            enhancedSystemPrompt.append("=== 对话历史结束 ===\n");
+            
+            String fullSystemPrompt = enhancedSystemPrompt.toString();
+            log.info("[MCP-HISTORY] 增强后的系统提示词长度: {} 字符", fullSystemPrompt.length());
+            
+            if (mcpToolProvider != null) {
+                log.info("[MCP-HISTORY] 调用ChatClient，启用MCP工具...");
+                response = chatClient.prompt()
+                    .system(fullSystemPrompt)
+                    .user(userPrompt)
+                    .toolCallbacks(mcpToolProvider)
+                    .call()
+                    .content();
+            } else {
+                log.info("[MCP-HISTORY] 调用ChatClient，无MCP工具...");
+                response = chatClient.prompt()
+                    .system(fullSystemPrompt)
+                    .user(userPrompt)
+                    .call()
+                    .content();
+            }
+        } else {
+            log.info("[MCP-HISTORY] 无历史消息，使用普通ChatClient调用...");
+            
+            if (mcpToolProvider != null) {
+                log.info("[MCP-HISTORY] 调用ChatClient，启用MCP工具...");
+                response = chatClient.prompt()
+                    .system(systemPrompt)
+                    .user(userPrompt)
+                    .toolCallbacks(mcpToolProvider)
+                    .call()
+                    .content();
+            } else {
+                log.info("[MCP-HISTORY] 调用ChatClient，无MCP工具...");
+                response = chatClient.prompt()
+                    .system(systemPrompt)
+                    .user(userPrompt)
+                    .call()
+                    .content();
+            }
+        }
+        
+        log.info("[MCP-HISTORY] 响应长度: {} 字符", response != null ? response.length() : 0);
+        log.info("========================================");
+        return response;
     }
 
     public String chat(String userPrompt) {

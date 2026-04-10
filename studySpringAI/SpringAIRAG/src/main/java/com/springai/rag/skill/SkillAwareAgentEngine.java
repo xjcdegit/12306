@@ -1,6 +1,7 @@
 package com.springai.rag.skill;
 
-import com.springai.rag.memory.MemoryManager;
+import com.springai.rag.memory.SessionManager;
+import com.springai.rag.memory.SessionManager.SessionStatus;
 import com.springai.rag.mcp.McpClientService;
 import com.springai.rag.skill.SkillRouter.SkillInfo;
 import org.slf4j.Logger;
@@ -9,30 +10,31 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Component
 public class SkillAwareAgentEngine {
 
     private static final Logger log = LoggerFactory.getLogger(SkillAwareAgentEngine.class);
 
-    private final MemoryManager memoryManager;
+    private static final int CONTEXT_WINDOW = 10;
+
+    private final SessionManager sessionManager;
     private final McpClientService mcpClientService;
     private final SkillRouter skillRouter;
     private final ChatClient chatClient;
 
-    public SkillAwareAgentEngine(MemoryManager memoryManager, 
+    public SkillAwareAgentEngine(SessionManager sessionManager, 
                                   McpClientService mcpClientService,
                                   SkillRouter skillRouter,
                                   ChatClient.Builder chatClientBuilder) {
-        this.memoryManager = memoryManager;
+        this.sessionManager = sessionManager;
         this.mcpClientService = mcpClientService;
         this.skillRouter = skillRouter;
         this.chatClient = chatClientBuilder.build();
         log.info("========================================");
         log.info("[AGENT] SkillAwareAgentEngine 初始化完成");
+        log.info("[AGENT] 使用 SessionManager 管理短期记忆");
         log.info("========================================");
     }
 
@@ -43,14 +45,20 @@ public class SkillAwareAgentEngine {
         log.info("[AGENT] 用户ID: {}", userId);
         log.info("[AGENT] 用户消息: {}", userMessage);
         log.info("========================================");
+
+        SessionStatus status = sessionManager.getSessionStatus(conversationId);
+        if (!status.isCanChat()) {
+            log.warn("[AGENT] 会话已达到记忆上限，需要保存");
+            return "记忆已达上限，请先保存当前对话后再继续。点击保存按钮即可压缩并保存对话历史。";
+        }
         
-        log.info("[AGENT] 步骤1: 保存用户消息到记忆...");
-        memoryManager.addUserMessage(conversationId, userId, userMessage);
-        log.info("[AGENT] 用户消息已保存");
+        log.info("[AGENT] 步骤1: 保存用户消息到短期记忆...");
+        sessionManager.addUserMessage(conversationId, userMessage);
+        log.info("[AGENT] 用户消息已保存到短期记忆");
         
-        log.info("[AGENT] 步骤2: 获取对话上下文...");
-        List<Message> context = memoryManager.getContextForConversation(conversationId, userId, 10);
-        log.info("[AGENT] 加载了 {} 条历史消息", context.size());
+        log.info("[AGENT] 步骤2: 从短期记忆获取对话上下文...");
+        List<Message> context = sessionManager.getContext(conversationId, CONTEXT_WINDOW);
+        log.info("[AGENT] 从短期记忆加载了 {} 条历史消息", context.size());
         
         log.info("[AGENT] 步骤3: 路由到合适的Skill...");
         SkillInfo matchedSkill = skillRouter.routeSkill(userMessage);
@@ -68,13 +76,19 @@ public class SkillAwareAgentEngine {
             response = processDefault(userMessage, context, conversationId, userId);
         }
         
-        log.info("[AGENT] 步骤5: 保存助手回复到记忆...");
-        memoryManager.addAssistantMessage(conversationId, userId, response);
-        log.info("[AGENT] 助手回复已保存");
+        log.info("[AGENT] 步骤5: 保存助手回复到短期记忆...");
+        sessionManager.addAssistantMessage(conversationId, response);
+        log.info("[AGENT] 助手回复已保存到短期记忆");
+
+        SessionStatus newStatus = sessionManager.getSessionStatus(conversationId);
+        if (newStatus.getWarning() != null) {
+            log.info("[AGENT] 警告: {}", newStatus.getWarning());
+        }
         
         log.info("========================================");
         log.info("[AGENT] ========== 处理完成 ==========");
         log.info("[AGENT] 响应长度: {} 字符", response != null ? response.length() : 0);
+        log.info("[AGENT] 当前短期记忆: {} 条消息", newStatus.getShortTermCount());
         log.info("========================================");
         return response;
     }
@@ -98,15 +112,18 @@ public class SkillAwareAgentEngine {
         systemPromptBuilder.append("- 历史消息数: ").append(context.size()).append("\n\n");
         
         systemPromptBuilder.append("你可以使用以下工具来完成任务：\n");
-        systemPromptBuilder.append("- 高德地图工具：用于地理编码、路径规划、POI搜索等\n");
-        systemPromptBuilder.append("- 记忆工具：用于保存和检索对话历史\n\n");
+        systemPromptBuilder.append("- 高德地图工具：用于地理编码、路径规划、POI搜索等\n\n");
         
         systemPromptBuilder.append("请根据技能指南，使用合适的工具来回答用户问题。");
         
         log.info("[AGENT-SKILL] 系统提示词长度: {} 字符", systemPromptBuilder.length());
-        log.info("[AGENT-SKILL] 调用MCP服务...");
+        log.info("[AGENT-SKILL] 调用MCP服务 (带历史上下文)...");
         
-        String response = mcpClientService.chatWithSystem(systemPromptBuilder.toString(), userMessage);
+        String response = mcpClientService.chatWithHistory(
+            systemPromptBuilder.toString(), 
+            userMessage, 
+            context
+        );
         
         log.info("[AGENT-SKILL] MCP响应长度: {} 字符", response != null ? response.length() : 0);
         log.info("========================================");
@@ -117,16 +134,13 @@ public class SkillAwareAgentEngine {
                                    String conversationId, String userId) {
         log.info("========================================");
         log.info("[AGENT-DEFAULT] 使用默认处理");
+        log.info("[AGENT-DEFAULT] 历史消息数: {}", context.size());
+
+        String systemPrompt = "你是一个友好的AI助手。请根据对话历史和用户当前的问题，给出有帮助的回答。";
         
-        Map<String, Object> contextMap = new HashMap<>();
-        contextMap.put("conversationId", conversationId);
-        contextMap.put("userId", userId);
-        contextMap.put("historyCount", context.size());
+        log.info("[AGENT-DEFAULT] 调用MCP服务 (带历史上下文)...");
         
-        log.info("[AGENT-DEFAULT] 上下文: {}", contextMap);
-        log.info("[AGENT-DEFAULT] 调用MCP服务...");
-        
-        String response = mcpClientService.callWithMcpTools(userMessage, contextMap);
+        String response = mcpClientService.chatWithHistory(systemPrompt, userMessage, context);
         
         log.info("[AGENT-DEFAULT] 响应长度: {} 字符", response != null ? response.length() : 0);
         log.info("========================================");
@@ -138,8 +152,12 @@ public class SkillAwareAgentEngine {
         return skillRouter.routeSkill(message);
     }
 
+    public SessionStatus getSessionStatus(String conversationId) {
+        return sessionManager.getSessionStatus(conversationId);
+    }
+
     public void clearConversation(String conversationId) {
         log.info("[AGENT] 清除会话: {}", conversationId);
-        memoryManager.clearConversation(conversationId);
+        sessionManager.closeSession(conversationId);
     }
 }
