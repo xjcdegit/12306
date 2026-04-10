@@ -4,12 +4,10 @@ import com.springaiquickstart.mcp.Tool;
 import com.springaiquickstart.mcp.ToolRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.ArrayList;
 
 /**
@@ -35,7 +33,6 @@ public class ToolManager {
      */
     private final ToolRegistry toolRegistry;
 
-    @Autowired
     public ToolManager(ToolRegistry toolRegistry) {
         
         logger.info("========== ToolManager 初始化开始 ==========");

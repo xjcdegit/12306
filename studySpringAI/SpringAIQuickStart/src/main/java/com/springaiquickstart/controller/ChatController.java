@@ -23,7 +23,6 @@ public class ChatController {
     private final ChatClient.Builder chatClientBuilder;
     private final List<ToolCallback> toolCallbacks;
 
-    @Autowired
     public ChatController(ChatClient.Builder chatClientBuilder, 
                           List<ToolCallback> toolCallbacks) {
         this.chatClientBuilder = chatClientBuilder;

@@ -1,6 +1,5 @@
 package com.springaiquickstart.mcp;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -19,7 +18,6 @@ public class ToolDispatcherImpl implements ToolDispatcher {
      * 构造方法
      * @param toolRegistry 工具注册表
      */
-    @Autowired
     public ToolDispatcherImpl(ToolRegistry toolRegistry) {
         this.toolRegistry = toolRegistry;
     }

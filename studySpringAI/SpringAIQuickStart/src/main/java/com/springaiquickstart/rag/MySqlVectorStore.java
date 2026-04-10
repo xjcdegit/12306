@@ -97,7 +97,7 @@ public class MySqlVectorStore {
     public List<Document> similaritySearch(List<Double> queryEmbedding, int topK, String category) {
         String sql = "SELECT doc_id, title, content, category, embedding FROM knowledge_base WHERE category = ?";
         
-        List<Document> allDocs = jdbcTemplate.query(sql, new Object[]{category}, (rs, rowNum) -> {
+        List<Document> allDocs = jdbcTemplate.query(sql, (rs, rowNum) -> {
             String embeddingStr = rs.getString("embedding");
             List<Double> embedding = stringToVector(embeddingStr);
             return new Document(
@@ -107,7 +107,7 @@ public class MySqlVectorStore {
                 rs.getString("category"),
                 embedding
             );
-        });
+        }, category);
 
         List<Document> results = new ArrayList<>();
         allDocs.stream()

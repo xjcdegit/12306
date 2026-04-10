@@ -1,6 +1,5 @@
 package com.springaiquickstart.rag;
 
-import ai.z.openapi.ZhipuAiClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,9 +13,6 @@ import java.util.UUID;
  */
 @Service
 public class DocumentLoaderService {
-
-    @Autowired
-    private ZhipuAiClient zhipuAiClient;
 
     @Autowired
     private MySqlVectorStore vectorStore;

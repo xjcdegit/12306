@@ -1,6 +1,5 @@
 package com.springaiquickstart.mcp;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -21,7 +20,6 @@ public class ToolRegistryImpl implements ToolRegistry {
      * 自动注入所有实现了Tool接口的Bean
      * @param toolList 工具列表
      */
-    @Autowired
     public ToolRegistryImpl(List<Tool> toolList) {
         // 自动注册所有实现了Tool接口的Bean
         for (Tool tool : toolList) {
